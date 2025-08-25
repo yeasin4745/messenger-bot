@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -7,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 
 const VERIFY_TOKEN = 'my_verify_token_123';
-
+let PAGE_ACCESS_TOKEN=process.env.PAGE_ACCESS_TOKEN
 // Middleware
 app.use(bodyParser.json());
 
