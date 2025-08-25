@@ -7,7 +7,7 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const VERIFY_TOKEN = 'my_verify_token_123';
+const VERIFY_TOKEN = 'my_verify_token_4745';
 let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 // Middleware
