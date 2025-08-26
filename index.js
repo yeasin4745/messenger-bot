@@ -28,7 +28,7 @@ app.get('/webhook', (req, res) => {
             res.sendStatus(403);
         }
     } else {
-        res.sendStatus(403); // সংশোধিত অংশ
+        res.sendStatus(403);
     }
 });
 
@@ -82,10 +82,11 @@ function callSendAPI(senderPsid, response) {
         });
 }
 
-
+// Manual check ✔️ 
 app.get('/',(req,res)=>{
     res.send('server is running...');
 })
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
