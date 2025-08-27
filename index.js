@@ -1,49 +1,40 @@
 require('dotenv').config();
 
 const express = require('express');
-const bodyParser = require('body-parser');
 const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const VERIFY_TOKEN = 'my_verify_token_4745';
-let PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
-// Middleware
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Webhook verification
 app.get('/webhook', (req, res) => {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    if (mode && token) {
-        if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-            console.log('Webhook verified successfully!');
-            res.status(200).send(challenge);
-        } else {
-            console.log('Verification failed');
-            res.sendStatus(403);
-        }
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+        console.log('Webhook verified successfully!');
+        res.status(200).send(challenge);
     } else {
         res.sendStatus(403);
     }
 });
 
-// Webhook event handler
 app.post('/webhook', (req, res) => {
     const body = req.body;
 
     if (body.object === 'page') {
         body.entry.forEach((entry) => {
-            const webhookEvent = entry.messaging[0];
-            const senderPsid = webhookEvent.sender.id;
-
-            if (webhookEvent.message) {
-                handleMessage(senderPsid, webhookEvent.message);
-            }
+            entry.messaging.forEach((webhookEvent) => {
+                if (webhookEvent.message) {
+                    const senderPsid = webhookEvent.sender.id;
+                    handleMessage(senderPsid, webhookEvent.message);
+                }
+            });
         });
 
         res.status(200).send('EVENT_RECEIVED');
@@ -52,42 +43,36 @@ app.post('/webhook', (req, res) => {
     }
 });
 
-// Message handler function
-function handleMessage(senderPsid, receivedMessage) {
-    let response;
-
+async function handleMessage(senderPsid, receivedMessage) {
     if (receivedMessage.text) {
-        response = {
+        const response = {
             text: `hello ! Iam your personal ai aissistant 🌟 . your ID: ${senderPsid}`
         };
-        callSendAPI(senderPsid, response);
+        await callSendAPI(senderPsid, response);
     }
 }
 
-// Send message to Facebook
-function callSendAPI(senderPsid, response) {
+async function callSendAPI(senderPsid, response) {
     const requestBody = {
         recipient: {
             id: senderPsid
         },
-        message: response
+        message: response,
+        messaging_type: 'RESPONSE'
     };
 
-    axios.post(`https://graph.facebook.com/v18.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, requestBody)
-        .then(() => {
-           console.log('Message sent successfully!');
-        })
-        .catch((error) => {
-            console.error('Error sending message:', error.response?.data || error.message);
-        });
+    try {
+        await axios.post(`https://graph.facebook.com/v18.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, requestBody);
+        console.log('Message sent successfully!');
+    } catch (error) {
+        console.error('Error sending message:', error.response?.data || error.message);
+    }
 }
 
-// Manual check ✔️ 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.send('server is running...');
-})
+});
 
-// Start server
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
     console.log(`🌐 Webhook URL: /webhook`);
